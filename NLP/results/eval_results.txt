@@ -1,0 +1,11 @@
+=== Evaluation Results ===
+eval_loss: 0.2628
+eval_model_preparation_time: 0.0014
+eval_accuracy: 0.9409
+eval_f1: 0.9411
+eval_precision_positive: 0.9376
+eval_recall_positive: 0.9446
+eval_f1_positive: 0.9411
+eval_runtime: 322.1805
+eval_samples_per_second: 77.5960
+eval_steps_per_second: 4.8510

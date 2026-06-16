@@ -1,21 +1,23 @@
 import os
-os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
-import os
+os.environ["HF_HUB_OFFLINE"] = "0"
+os.environ["TRANSFORMERS_OFFLINE"] = "0"
+os.environ["HF_DATASETS_OFFLINE"] = "0"
+
 import torch
 print("CUDA available:", torch.cuda.is_available())
 if torch.cuda.is_available():
     print("GPU device:", torch.cuda.get_device_name(0))
+from datasets import load_dataset
 from transformers import (
-    BertForSequenceClassification,
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
     TrainingArguments,
     Trainer,
 )
-from data_loader import load_imdb_data
+from sklearn.metrics import accuracy_score, f1_score
 
 
 def compute_metrics(eval_pred):
-    from sklearn.metrics import accuracy_score, f1_score
-
     logits, labels = eval_pred
     predictions = logits.argmax(axis=-1)
     return {
@@ -24,12 +26,29 @@ def compute_metrics(eval_pred):
     }
 
 
+def tokenize_function(examples, tokenizer):
+    return tokenizer(
+        examples["text"],
+        padding="max_length",
+        truncation=True,
+        max_length=512,
+    )
+
+
 def main():
     os.makedirs("./models", exist_ok=True)
 
-    train_dataset, test_dataset = load_imdb_data()
+    dataset = load_dataset("imdb", trust_remote_code=True)
 
-    model = BertForSequenceClassification.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+    tokenized_datasets = dataset.map(
+        lambda x: tokenize_function(x, tokenizer), batched=True
+    )
+    train_dataset = tokenized_datasets["train"]
+    test_dataset = tokenized_datasets["test"]
+
+    model = AutoModelForSequenceClassification.from_pretrained(
         "bert-base-uncased", num_labels=2
     )
 
@@ -54,7 +73,7 @@ def main():
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
-        tokenizer=None,
+        tokenizer=tokenizer,
         compute_metrics=compute_metrics,
     )
 

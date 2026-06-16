@@ -1,223 +1,111 @@
-# AI 组能力测试 Starter Repo
+# IMDB 情感二分类 —— BERT 微调
 
-欢迎参加 AI 组能力测试。
-
-**请认真阅读考核说明文档和仓库根目录下的所有Markdown文档**，并按照要求完成对应方向的任务。本仓库仅提供项目结构参考，不提供完整实现。
-
----
-
-# 目录结构
-
-```text
-AI-Assessment/
-├── NLP/
-├── CV/
-└── MultiModal/
-```
-
-请选择一个方向完成考核：
-
-- NLP（自然语言处理）
-
-- CV（计算机视觉）
-
-- MultiModal（多模态）
-
-每位参与者仅需完成一个方向。
+**方向**：自然语言处理（NLP）  
+**任务**：IMDB 电影评论情感二分类（Positive / Negative）  
+**模型**：BERT-base-uncased（微调 3 epoch）  
+**最终指标**：Accuracy **94.09%** | F1-Score **94.11%**
 
 ---
-
-# 考核流程
-
-## 阶段一：文献综述
-
-根据考核文档要求：
-
-- 阅读相关文献
-
-- 完成综述报告
-
-- 分析技术演进路线
-
-- 对不同方法进行比较与思考
-
-建议最终与阶段二报告整合为一份 PDF。
-
----
-
-## 阶段二：实战项目
-
-根据所选方向完成对应任务：
-
-### NLP
-
-任务：
-
-- IMDB 情感分析
-
-- 二分类（Positive / Negative）
-
-推荐路径：
-
-- BERT 微调
-
-- Word2Vec + LSTM
-
----
-
-### CV
-
-任务：
-
-- CIFAR-10 图像分类
-
-推荐路径：
-
-- ResNet
-
-- VGG 对比实验
-
----
-
-### MultiModal
-
-任务：
-
-- Visual Question Answering（VQA）
-
-推荐模型：
-
-- BLIP
-
-- 其他开源 VQA 模型
-
----
-
-# 提交要求
-
-最终提交内容包括：
-
-## 1. GitHub 仓库
-
-仓库应包含：
-
-```text
-project/
-├── README.md
-├── requirements.txt
-├── src/
-├── results/
-└── report.pdf
-```
-
----
-
-## 2. PDF 报告
-
-报告需包含：
-
-### 阶段一
-
-- 文献综述
-
-- 技术演进分析
-
-- 方法对比
-
-### 阶段二
-
-- 实验环境
-
-- 实验结果
-
-- 错误案例分析
-
-- 调参与复盘总结
-
----
-
-# README 要求
-
-项目 README 至少包含：
 
 ## 环境配置
 
-例如：
-
-- Python 版本
-
-- PyTorch 版本
-
-- CUDA 版本
+| 软件 | 版本 |
+|------|------|
+| Python | 3.14.5 |
+| PyTorch | 2.11.0+cu128 |
+| CUDA | 12.8 |
+| Transformers | 4.57.6 |
+| Datasets | 5.0.0 |
 
 ## 数据准备
 
-说明数据集获取方式。
+使用 HuggingFace Datasets 库自动下载 IMDB 数据集（50,000 条，已分割为 train/test）。
+
+```python
+from datasets import load_dataset
+dataset = load_dataset("imdb")
+```
+
+首次运行时会自动下载，也可设置镜像：
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com
+```
 
 ## 训练命令
 
-示例：
-
 ```bash
-python train.py
+python src/train.py
 ```
 
-## 测试命令
-
-示例：
+或使用优化版本：
 
 ```bash
-python evaluate.py
+python src/train_new.py
 ```
+
+训练参数（详见报告）：
+- learning_rate: 2e-5
+- batch_size: 16
+- num_train_epochs: 3
+- max_length: 512
+
+## 评估命令
+
+```bash
+python src/evaluate.py
+```
+
+输出 Accuracy、F1-Score、Precision、Recall 及各错误类型分析。
+
+## 推理命令
+
+```bash
+python src/inference.py
+```
+
+对输入文本进行情感预测（Positive / Negative）。
 
 ## 结果说明
 
-说明最终实验结果与关键指标。
+| 指标 | 值 |
+|------|-----|
+| Accuracy | 94.09% |
+| F1-Score | 94.11% |
+| Negative Precision | 94.42% |
+| Negative Recall | 93.71% |
+| Positive Precision | 93.76% |
+| Positive Recall | 94.46% |
 
----
+可视化结果（位于 `NLP/results/`）：
+- `loss_curve.png` — 训练损失曲线
+- `confusion_matrix.png` — 混淆矩阵
 
-# 可复现性要求
+详细分析见根目录 `NLP_Wangziyan6210.pdf`。
 
-项目应尽量保证可复现：
+## 项目结构
 
-- 提供 requirements.txt
+```
+├── NLP/
+│   ├── src/
+│   │   ├── train.py          # 训练脚本
+│   │   ├── train_new.py      # 优化版训练脚本
+│   │   ├── evaluate.py       # 评估脚本
+│   │   ├── inference.py      # 推理脚本
+│   │   └── data_loader.py    # 数据加载模块
+│   ├── results/
+│   │   ├── loss_curve.png
+│   │   ├── confusion_matrix.png
+│   │   └── eval_results.txt
+│   └── models/               # 模型权重
+├── CV/                       # （未选）
+├── MultiModal/               # （未选）
+├── requirements.txt
+├── NLP_Wangziyan6210.pdf     # 完整考核报告
+└── README.md
+```
 
-- 提供运行命令
+## 学术规范
 
-- 说明关键超参数
-
-- 保留主要实验结果
-
----
-
-# 学术规范
-
-请遵守学术诚信要求：
-
-- 引用论文需注明来源
-
-- 引用开源项目需注明仓库地址
-
-- 使用 AI 工具辅助时请说明使用范围
-
-- 严禁直接提交他人成果
-
----
-
-# 评分重点
-
-重点关注：
-
-- 技术理解
-
-- 工程实现
-
-- 分析能力
-
-- 代码规范
-
-- 结果复盘
-
-最终结果不仅取决于指标高低，也取决于对实验过程的理解与分析深度。
-
-祝各位顺利完成考核。
+- 使用 AI 工具（ChatGPT/Claude）辅助查阅资料和代码编写
+- 参考文献来源已在报告中注明
